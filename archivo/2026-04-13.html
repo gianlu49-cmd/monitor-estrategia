@@ -1,1 +1,467 @@
 
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Monitor de Estrategia | Balanz Research</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg-primary: #0a0e1a;
+  --bg-card: #111827;
+  --border: #1e2a45;
+  --accent-blue: #3b82f6;
+  --accent-cyan: #06b6d4;
+  --accent-emerald: #10b981;
+  --accent-amber: #f59e0b;
+  --accent-red: #ef4444;
+  --accent-purple: #8b5cf6;
+  --text-primary: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --gradient-blue: linear-gradient(135deg, #3b82f6, #06b6d4);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'DM Sans', sans-serif; background: var(--bg-primary); color: var(--text-primary); min-height: 100vh; overflow-x: hidden; }
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg-primary); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+.ambient-bg { position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
+.ambient-bg::before { content: ''; position: absolute; width: 600px; height: 600px; top: -200px; right: -200px; background: radial-gradient(circle, rgba(59,130,246,0.08) 0%, transparent 70%); animation: float1 20s ease-in-out infinite; }
+.ambient-bg::after { content: ''; position: absolute; width: 500px; height: 500px; bottom: -100px; left: -100px; background: radial-gradient(circle, rgba(6,182,212,0.06) 0%, transparent 70%); animation: float2 25s ease-in-out infinite; }
+@keyframes float1 { 0%,100% { transform: translate(0,0); } 50% { transform: translate(-80px,60px); } }
+@keyframes float2 { 0%,100% { transform: translate(0,0); } 50% { transform: translate(60px,-80px); } }
+.container { position: relative; z-index: 1; max-width: 1400px; margin: 0 auto; padding: 24px 20px 60px; }
+.header { display: flex; align-items: center; justify-content: space-between; padding: 20px 0 32px; border-bottom: 1px solid var(--border); margin-bottom: 32px; flex-wrap: wrap; gap: 16px; }
+.header-left { display: flex; align-items: center; gap: 16px; }
+.logo-mark { width: 48px; height: 48px; background: var(--gradient-blue); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-family: 'Space Mono', monospace; font-weight: 700; font-size: 20px; color: #fff; letter-spacing: -1px; }
+.header-title h1 { font-size: 22px; font-weight: 700; letter-spacing: -0.5px; }
+.header-title p { font-size: 13px; color: var(--text-muted); margin-top: 2px; font-family: 'Space Mono', monospace; }
+.date-badge { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 8px 14px; font-size: 13px; color: var(--text-secondary); font-family: 'Space Mono', monospace; }
+.live-dot { width: 8px; height: 8px; background: var(--accent-emerald); border-radius: 50%; display: inline-block; margin-right: 6px; animation: pulse 2s ease-in-out infinite; }
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+.tabs { display: flex; gap: 4px; margin-bottom: 28px; background: var(--bg-card); border-radius: 12px; padding: 4px; border: 1px solid var(--border); overflow-x: auto; }
+.tab { padding: 10px 20px; border-radius: 8px; font-size: 13px; font-weight: 500; color: var(--text-muted); cursor: pointer; transition: all 0.2s; white-space: nowrap; border: none; background: transparent; font-family: inherit; }
+.tab:hover { color: var(--text-secondary); }
+.tab.active { background: var(--accent-blue); color: #fff; }
+.sub-tabs { display: flex; gap: 0; margin-bottom: 24px; border-bottom: 1px solid var(--border); overflow-x: auto; }
+.sub-tab { padding: 10px 20px; font-size: 13px; font-weight: 500; color: var(--text-muted); cursor: pointer; transition: all 0.2s; white-space: nowrap; border: none; background: transparent; font-family: inherit; border-bottom: 2px solid transparent; position: relative; bottom: -1px; }
+.sub-tab:hover { color: var(--text-secondary); }
+.sub-tab.active { color: var(--accent-cyan); border-bottom-color: var(--accent-cyan); }
+.section-title { font-size: 11px; text-transform: uppercase; letter-spacing: 2px; color: var(--text-muted); margin-bottom: 16px; font-family: 'Space Mono', monospace; }
+.kpi-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 32px; }
+.kpi-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; transition: all 0.3s; }
+.kpi-card:hover { border-color: var(--accent-blue); transform: translateY(-2px); }
+.kpi-label { font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text-muted); margin-bottom: 8px; font-family: 'Space Mono', monospace; }
+.kpi-value { font-size: 28px; font-weight: 700; letter-spacing: -1px; }
+.kpi-sub { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+.kpi-change { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 600; margin-top: 6px; padding: 2px 8px; border-radius: 6px; }
+.kpi-change.positive { background: rgba(16,185,129,0.12); color: var(--accent-emerald); }
+.kpi-change.negative { background: rgba(239,68,68,0.12); color: var(--accent-red); }
+.strategy-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 16px; margin-bottom: 32px; }
+.strategy-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px; padding: 24px; position: relative; overflow: hidden; transition: all 0.3s; }
+.strategy-card:hover { border-color: rgba(59,130,246,0.4); transform: translateY(-2px); }
+.strategy-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
+.strategy-card.buy::before { background: var(--gradient-blue); }
+.strategy-card.hold::before { background: var(--accent-amber); }
+.strategy-card.rotate::before { background: linear-gradient(90deg, var(--accent-purple), var(--accent-cyan)); }
+.strategy-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.strategy-class { font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text-muted); font-family: 'Space Mono', monospace; }
+.strategy-signal { font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 6px; text-transform: uppercase; letter-spacing: 1px; }
+.signal-buy { background: rgba(59,130,246,0.15); color: var(--accent-blue); }
+.signal-hold { background: rgba(245,158,11,0.15); color: var(--accent-amber); }
+.signal-rotate { background: rgba(139,92,246,0.15); color: var(--accent-purple); }
+.strategy-instrument { font-size: 24px; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 10px; }
+.strategy-rationale { font-size: 13px; line-height: 1.7; color: var(--text-secondary); }
+.strategy-metrics { display: flex; gap: 16px; margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--border); flex-wrap: wrap; }
+.strategy-metric { text-align: center; flex: 1; min-width: 60px; }
+.strategy-metric-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); margin-bottom: 4px; font-family: 'Space Mono', monospace; }
+.strategy-metric-value { font-size: 16px; font-weight: 700; }
+.table-wrapper { background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; margin-bottom: 24px; }
+.table-header-bar { display: flex; align-items: center; justify-content: space-between; padding: 18px 24px; border-bottom: 1px solid var(--border); }
+.table-title { font-size: 16px; font-weight: 600; }
+.table-subtitle { font-size: 12px; color: var(--text-muted); font-family: 'Space Mono', monospace; }
+table { width: 100%; border-collapse: collapse; }
+th { text-align: left; padding: 12px 16px; font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text-muted); font-family: 'Space Mono', monospace; border-bottom: 1px solid var(--border); font-weight: 400; }
+th.right, td.right { text-align: right; }
+td { padding: 12px 16px; font-size: 13px; border-bottom: 1px solid rgba(30,42,69,0.5); font-variant-numeric: tabular-nums; }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: rgba(59,130,246,0.04); }
+.bond-name { font-weight: 600; }
+.perf-positive { color: var(--accent-emerald); }
+.perf-negative { color: var(--accent-red); }
+.perf-muted { color: var(--text-muted); }
+.highlight-row td { background: rgba(59,130,246,0.06); }
+.highlight-row .bond-name { color: var(--accent-blue); }
+.chart-container { background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px; padding: 24px; margin-bottom: 24px; position: relative; }
+.chart-title { font-size: 16px; font-weight: 600; margin-bottom: 4px; }
+.chart-subtitle { font-size: 12px; color: var(--text-muted); font-family: 'Space Mono', monospace; margin-bottom: 20px; }
+.chart-canvas-wrap { position: relative; width: 100%; height: 420px; }
+.chart-legend { display: flex; gap: 24px; margin-top: 16px; flex-wrap: wrap; }
+.legend-item { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-secondary); }
+.legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+.news-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 32px; }
+@media (max-width: 800px) { .news-grid { grid-template-columns: 1fr; } }
+.news-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px; padding: 20px; }
+.news-card h3 { font-size: 15px; font-weight: 600; margin-bottom: 12px; line-height: 1.4; }
+.news-items { list-style: none; }
+.news-item { padding: 10px 0; border-bottom: 1px solid rgba(30,42,69,0.5); font-size: 13px; line-height: 1.65; color: var(--text-secondary); }
+.news-item:last-child { border-bottom: none; }
+.news-tag { display: inline-block; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; padding: 2px 8px; border-radius: 4px; margin-right: 8px; font-weight: 600; font-family: 'Space Mono', monospace; }
+.tag-bcra { background: rgba(6,182,212,0.15); color: var(--accent-cyan); }
+.tag-fmi { background: rgba(139,92,246,0.15); color: var(--accent-purple); }
+.tag-macro { background: rgba(245,158,11,0.15); color: var(--accent-amber); }
+.tag-pol { background: rgba(239,68,68,0.12); color: var(--accent-red); }
+.tag-reg { background: rgba(16,185,129,0.12); color: var(--accent-emerald); }
+.calendar-date { font-family: 'Space Mono', monospace; font-weight: 700; color: var(--accent-cyan); }
+.comp-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-bottom: 32px; }
+.comp-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 16px; text-align: center; transition: all 0.3s; }
+.comp-card:hover { border-color: var(--accent-blue); }
+.comp-country { font-size: 12px; color: var(--text-muted); margin-bottom: 6px; font-family: 'Space Mono', monospace; }
+.comp-spread { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+.comp-change { font-size: 11px; font-weight: 600; }
+.tab-content { display: none; }
+.tab-content.active { display: block; animation: fadeIn 0.3s ease; }
+.sub-content { display: none; }
+.sub-content.active { display: block; animation: fadeIn 0.3s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+.footer { text-align: center; padding: 32px 0 0; border-top: 1px solid var(--border); margin-top: 40px; }
+.footer p { font-size: 11px; color: var(--text-muted); line-height: 1.6; max-width: 800px; margin: 0 auto; }
+@media (max-width: 600px) {
+  .header { flex-direction: column; align-items: flex-start; }
+  .kpi-row { grid-template-columns: 1fr 1fr; }
+  .strategy-grid { grid-template-columns: 1fr; }
+  .kpi-value { font-size: 22px; }
+  .strategy-instrument { font-size: 20px; }
+  .chart-canvas-wrap { height: 320px; }
+}
+</style>
+</head>
+<body>
+<div class="ambient-bg"></div>
+<div class="container">
+  <header class="header">
+    <div class="header-left">
+      <div class="logo-mark">B</div>
+      <div class="header-title"><h1>Monitor de Estrategia</h1><p>Balanz Research — Crédito soberano, tasas y FX</p></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+      <a href="../index.html" style="font-size:12px;color:var(--accent-cyan);text-decoration:none;padding:8px 14px;border:1px solid var(--accent-cyan);border-radius:8px;font-weight:600;transition:all 0.2s" onmouseover="this.style.background='rgba(6,182,212,0.15)'" onmouseout="this.style.background='transparent'">← Último informe</a>
+      <div class="date-badge"><span class="live-dot" style="background:var(--accent-amber)"></span>Archivo: 13 abril 2026</div>
+    </div>
+  </header>
+
+  <div class="tabs">
+    <button class="tab active" onclick="showTab('overview',this)">Resumen</button>
+    <button class="tab" onclick="showTab('strategy',this)">Estrategia</button>
+    <button class="tab" onclick="showTab('rendimientos',this)">Rendimientos</button>
+    <button class="tab" onclick="showTab('weekly',this)">Semana</button>
+    <button class="tab" onclick="showTab('calendar',this)">Agenda</button>
+  </div>
+
+  <!-- ============ RESUMEN ============ -->
+  <div class="tab-content active" id="tab-overview">
+    <div class="section-title">Indicadores clave</div>
+    <div class="kpi-row">
+      <div class="kpi-card"><div class="kpi-label">Compras BCRA (5d)</div><div class="kpi-value" style="color:var(--accent-emerald)">US$963M</div><div class="kpi-sub">YTD: US$5.420M</div><div class="kpi-change positive">&#9650; Aceleración de compras</div></div>
+      <div class="kpi-card"><div class="kpi-label">Z-Spread Argentina</div><div class="kpi-value">551 <span style="font-size:14px;color:var(--text-muted)">pbs</span></div><div class="kpi-change positive">&#9660; -57 pbs 1s</div></div>
+      <div class="kpi-card"><div class="kpi-label">CCL</div><div class="kpi-value">1.481</div><div class="kpi-change negative">&#9660; -0,6% semanal</div></div>
+      <div class="kpi-card"><div class="kpi-label">IPC Mar (est. Balanz)</div><div class="kpi-value">3,2% <span style="font-size:14px;color:var(--text-muted)">m/m</span></div><div class="kpi-sub">REM: 3,0% m/m</div></div>
+      <div class="kpi-card"><div class="kpi-label">Canje MEP/CCL</div><div class="kpi-value">4,6%</div><div class="kpi-change negative">&#9650; Post regulación BCRA</div></div>
+      <div class="kpi-card"><div class="kpi-label">Morosidad hogares</div><div class="kpi-value" style="color:var(--accent-amber)">11,2%</div><div class="kpi-sub">16 meses consecutivos de suba</div></div>
+    </div>
+    <div class="section-title">Z-Spreads: Argentina vs Comparables (pbs)</div>
+    <div class="comp-grid">
+      <div class="comp-card" style="border-color:var(--accent-blue)"><div class="comp-country">Argentina</div><div class="comp-spread" style="color:var(--accent-blue)">552</div><div class="comp-change positive">-57 1s</div></div>
+      <div class="comp-card"><div class="comp-country">Angola</div><div class="comp-spread">487</div><div class="comp-change positive">-20 1s</div></div>
+      <div class="comp-card"><div class="comp-country">Ecuador</div><div class="comp-spread">442</div><div class="comp-change positive">-45 1s</div></div>
+      <div class="comp-card"><div class="comp-country">Egipto</div><div class="comp-spread">374</div><div class="comp-change positive">-54 1s</div></div>
+      <div class="comp-card"><div class="comp-country">Pakistán</div><div class="comp-spread">363</div><div class="comp-change positive">-58 1s</div></div>
+      <div class="comp-card"><div class="comp-country">El Salvador</div><div class="comp-spread">332</div><div class="comp-change positive">-28 1s</div></div>
+      <div class="comp-card"><div class="comp-country">Nigeria</div><div class="comp-spread">310</div><div class="comp-change positive">-22 1s</div></div>
+    </div>
+    <div class="section-title">Recomendaciones principales</div>
+    <div class="strategy-grid">
+      <div class="strategy-card buy"><div class="strategy-header"><span class="strategy-class">Ley Extranjera</span><span class="strategy-signal signal-buy">Mantener</span></div><div class="strategy-instrument">GD41</div><div class="strategy-rationale">Combinación atractiva de upside y carry. BCRA aceleró compras (US$72M→US$173M diarios). Tramo largo ~160 pbs sobre promedio B-.</div><div class="strategy-metrics"><div class="strategy-metric"><div class="strategy-metric-label">Precio</div><div class="strategy-metric-value">70,9</div></div><div class="strategy-metric"><div class="strategy-metric-label">TIR</div><div class="strategy-metric-value">9,8%</div></div><div class="strategy-metric"><div class="strategy-metric-label">1s</div><div class="strategy-metric-value" style="color:var(--accent-emerald)">+4,6%</div></div><div class="strategy-metric"><div class="strategy-metric-label">12m</div><div class="strategy-metric-value" style="color:var(--accent-emerald)">+33,3%</div></div></div></div>
+      <div class="strategy-card rotate"><div class="strategy-header"><span class="strategy-class">Ley Local</span><span class="strategy-signal signal-rotate">Rotar</span></div><div class="strategy-instrument">AL30</div><div class="strategy-rationale">Rotar desde GD30. Spread de legislación 121 pbs no justificado. Captura compresión hacia B- y convergencia con Globales.</div><div class="strategy-metrics"><div class="strategy-metric"><div class="strategy-metric-label">Precio</div><div class="strategy-metric-value">83,8</div></div><div class="strategy-metric"><div class="strategy-metric-label">TIR</div><div class="strategy-metric-value">9,8%</div></div><div class="strategy-metric"><div class="strategy-metric-label">1s</div><div class="strategy-metric-value" style="color:var(--accent-emerald)">+2,5%</div></div><div class="strategy-metric"><div class="strategy-metric-label">Spread</div><div class="strategy-metric-value">121pb</div></div></div></div>
+      <div class="strategy-card buy"><div class="strategy-header"><span class="strategy-class">Provinciales</span><span class="strategy-signal signal-buy">Compra</span></div><div class="strategy-instrument">SFD34</div><div class="strategy-rationale">Santa Fe: fundamentos sólidos, baja deuda/ingresos. Beneficio de compresión soberana hacia B-.</div><div class="strategy-metrics"><div class="strategy-metric"><div class="strategy-metric-label">Ret. esperado</div><div class="strategy-metric-value" style="color:var(--accent-emerald)">15,6%</div></div></div></div>
+      <div class="strategy-card buy"><div class="strategy-header"><span class="strategy-class">Boncer + Cobertura</span><span class="strategy-signal signal-buy">Mantener</span></div><div class="strategy-instrument">TZX28 + Rofex</div><div class="strategy-rationale">Retorno 10,7% USD desde feb. Cobertura Rofex recomendada. Inflación implícita bajo proyecciones → CER.</div><div class="strategy-metrics"><div class="strategy-metric"><div class="strategy-metric-label">TEA</div><div class="strategy-metric-value">6,5%</div></div><div class="strategy-metric"><div class="strategy-metric-label">3m</div><div class="strategy-metric-value" style="color:var(--accent-emerald)">+15,1%</div></div></div></div>
+      <div class="strategy-card hold"><div class="strategy-header"><span class="strategy-class">Tasa Fija</span><span class="strategy-signal signal-hold">Neutral</span></div><div class="strategy-instrument">—</div><div class="strategy-rationale">Inflación proyectada por encima de implícitas → preferimos CER.</div></div>
+      <div class="strategy-card buy"><div class="strategy-header"><span class="strategy-class">ROFEX / DL</span><span class="strategy-signal signal-buy">Cobertura</span></div><div class="strategy-instrument">Rofex Jun-26</div><div class="strategy-rationale">Curva Rofex por debajo de proyecciones TC. Buena opción de cobertura, especialmente a junio para cubrir TZX28.</div></div>
+    </div>
+  </div>
+
+  <!-- ============ ESTRATEGIA ============ -->
+  <div class="tab-content" id="tab-strategy">
+    <div class="section-title">Detalle por clase de activo</div>
+    <div class="news-grid">
+      <div class="news-card"><h3 style="color:var(--accent-blue)">&#9679; Ley Extranjera — GD41</h3><ul class="news-items"><li class="news-item">Curva recuperó en contexto global favorable, pero aún con spread vs pares.</li><li class="news-item">Globales comprimieron 63 pbs en la semana.</li><li class="news-item">Tramo largo ~160 pbs sobre promedio B-.</li><li class="news-item">Limitada liquidez externa = principal factor de underperformance.</li><li class="news-item">BCRA aceleró compras: US$72M→US$173M diarios promedio.</li></ul></div>
+      <div class="news-card"><h3 style="color:var(--accent-purple)">&#9679; Ley Local — AL30 (rotar desde GD30)</h3><ul class="news-items"><li class="news-item">Spread legislación 121 pbs — excesivo.</li><li class="news-item">Manejo de pasivos incluiría ambas legislaciones.</li><li class="news-item">AL30 captura compresión hacia B- y convergencia con Globales.</li><li class="news-item">AL29: spread más amplio (206 pbs), menor potencial por duración.</li></ul></div>
+      <div class="news-card"><h3 style="color:var(--accent-emerald)">&#9679; Provinciales — SFD34</h3><ul class="news-items"><li class="news-item">Santa Fe: fundamentos sólidos, baja deuda vs ingresos.</li><li class="news-item"><strong>Riesgo:</strong> Kicillof elevó perfil político → riesgo fiscal PBA.</li><li class="news-item">Suba combustibles presionando costos en transporte.</li></ul></div>
+      <div class="news-card"><h3 style="color:var(--accent-cyan)">&#9679; Deuda Local — TZX28 + Rofex</h3><ul class="news-items"><li class="news-item">TZX28 atractivo a junio bajo escenarios de inflación/TC por encima del consenso.</li><li class="news-item">Inflación implícita subió pero bajo proyecciones → CER.</li><li class="news-item">Tramo largo: mayor carry, compresión riesgo país, roll-down.</li><li class="news-item">Liquidez: CER, en particular X29Y6.</li></ul></div>
+    </div>
+  </div>
+
+  <!-- ============ RENDIMIENTOS ============ -->
+  <div class="tab-content" id="tab-rendimientos">
+    <div class="sub-tabs">
+      <button class="sub-tab active" onclick="showSubTab('soberanos',this)">Soberanos</button>
+      <button class="sub-tab" onclick="showSubTab('subsoberanos',this)">Subsoberanos</button>
+      <button class="sub-tab" onclick="showSubTab('deuda-local',this)">Deuda Local</button>
+    </div>
+
+    <!-- === Soberanos === -->
+    <div class="sub-content active" id="sub-soberanos">
+      <div class="chart-container">
+        <div class="chart-title">Curvas de Crédito Soberano</div>
+        <div class="chart-subtitle">TIR (%) vs Duration — Globales, Bonares & BOPREAs — 10 abril 2026</div>
+        <div class="chart-canvas-wrap" id="curveChart"></div>
+        <div class="chart-legend">
+          <div class="legend-item"><div class="legend-dot" style="background:#3b82f6"></div>Globales (GD)</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#06b6d4"></div>Bonares (AL)</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#94a3b8"></div>BOPREAs</div>
+          <div class="legend-item" style="margin-left:auto;font-size:11px;color:var(--text-muted)">★ = Recomendado</div>
+        </div>
+      </div>
+
+      <div class="section-title">Globales (Ley Extranjera)</div>
+      <div class="table-wrapper"><div class="table-header-bar"><div><div class="table-title">Bonos GD</div><div class="table-subtitle">Precios dirty, base 100 VN — 10 abril</div></div></div><div style="overflow-x:auto"><table><thead><tr><th>Bono</th><th class="right">Precio</th><th class="right">TIR (%)</th><th class="right">1 Sem</th><th class="right">1 Mes</th><th class="right">3 Mes</th><th class="right">12 Mes</th></tr></thead><tbody>
+        <tr><td class="bond-name">GD29</td><td class="right">89,7</td><td class="right">7,7</td><td class="right perf-positive">+1,8</td><td class="right perf-positive">+1,4</td><td class="right perf-positive">+2,7</td><td class="right perf-positive">+17,5</td></tr>
+        <tr><td class="bond-name">GD30</td><td class="right">85,8</td><td class="right">8,6</td><td class="right perf-positive">+2,1</td><td class="right perf-positive">+0,9</td><td class="right perf-positive">+2,9</td><td class="right perf-positive">+18,3</td></tr>
+        <tr><td class="bond-name">GD35</td><td class="right">76,4</td><td class="right">9,7</td><td class="right perf-positive">+4,1</td><td class="right perf-positive">+0,5</td><td class="right perf-positive">+2,4</td><td class="right perf-positive">+32,8</td></tr>
+        <tr><td class="bond-name">GD38</td><td class="right">79,7</td><td class="right">9,8</td><td class="right perf-positive">+3,9</td><td class="right perf-positive">+0,5</td><td class="right perf-positive">+2,4</td><td class="right perf-positive">+32,5</td></tr>
+        <tr class="highlight-row"><td class="bond-name">GD41 ★</td><td class="right">70,9</td><td class="right">9,8</td><td class="right perf-positive">+4,6</td><td class="right perf-positive">+0,3</td><td class="right perf-positive">+2,6</td><td class="right perf-positive">+33,3</td></tr>
+        <tr><td class="bond-name">GD46</td><td class="right">72,7</td><td class="right">9,6</td><td class="right perf-positive">+4,3</td><td class="right perf-positive">+1,2</td><td class="right perf-positive">+2,6</td><td class="right perf-positive">+28,3</td></tr>
+      </tbody></table></div></div>
+
+      <div class="section-title">Bonares (Ley Local)</div>
+      <div class="table-wrapper"><div class="table-header-bar"><div><div class="table-title">Bonos AL</div><div class="table-subtitle">Precios dirty, base 100 VN — 10 abril</div></div></div><div style="overflow-x:auto"><table><thead><tr><th>Bono</th><th class="right">Precio</th><th class="right">TIR (%)</th><th class="right">1 Sem</th><th class="right">1 Mes</th><th class="right">3 Mes</th><th class="right">12 Mes</th></tr></thead><tbody>
+        <tr><td class="bond-name">AL29</td><td class="right">86,8</td><td class="right">9,8</td><td class="right perf-positive">+1,8</td><td class="right perf-positive">+1,7</td><td class="right perf-positive">+3,0</td><td class="right perf-positive">+19,2</td></tr>
+        <tr class="highlight-row"><td class="bond-name">AL30 ★</td><td class="right">83,8</td><td class="right">9,8</td><td class="right perf-positive">+2,5</td><td class="right perf-positive">+1,7</td><td class="right perf-positive">+5,0</td><td class="right perf-positive">+18,0</td></tr>
+        <tr><td class="bond-name">AL35</td><td class="right">74,4</td><td class="right">10,2</td><td class="right perf-positive">+3,1</td><td class="right perf-positive">+0,3</td><td class="right perf-positive">+2,1</td><td class="right perf-positive">+32,7</td></tr>
+        <tr><td class="bond-name">AL38</td><td class="right">76,9</td><td class="right">10,6</td><td class="right perf-positive">+2,7</td><td class="right perf-positive">+1,0</td><td class="right perf-positive">+2,4</td><td class="right perf-positive">+30,3</td></tr>
+        <tr><td class="bond-name">AL41</td><td class="right">68,8</td><td class="right">10,3</td><td class="right perf-positive">+2,7</td><td class="right perf-negative">-0,3</td><td class="right perf-negative">-0,1</td><td class="right perf-positive">+32,3</td></tr>
+        <tr><td class="bond-name">AL29N</td><td class="right">90,9</td><td class="right">10,5</td><td class="right perf-positive">+1,8</td><td class="right perf-negative">-0,9</td><td class="right perf-muted">—</td><td class="right perf-muted">—</td></tr>
+        <tr><td class="bond-name">AL27</td><td class="right">98,2</td><td class="right">7,3</td><td class="right perf-positive">+0,1</td><td class="right perf-muted">—</td><td class="right perf-muted">—</td><td class="right perf-muted">—</td></tr>
+        <tr><td class="bond-name">AL28</td><td class="right">93,7</td><td class="right">8,8</td><td class="right perf-positive">+2,5</td><td class="right perf-muted">—</td><td class="right perf-muted">—</td><td class="right perf-muted">—</td></tr>
+      </tbody></table></div></div>
+
+      <div class="section-title">BOPREAs</div>
+      <div class="table-wrapper"><div class="table-header-bar"><div><div class="table-title">BOPREAs</div><div class="table-subtitle">Precios dirty — 10 abril</div></div></div><div style="overflow-x:auto"><table><thead><tr><th>Bono</th><th class="right">Precio</th><th class="right">TIR (%)</th><th class="right">1 Sem</th><th class="right">1 Mes</th><th class="right">3 Mes</th><th class="right">12 Mes</th></tr></thead><tbody>
+        <tr><td class="bond-name">BOPREA26</td><td class="right">55,4</td><td class="right">-49,5</td><td class="right perf-negative">-46,7</td><td class="right perf-negative">-45,9</td><td class="right perf-negative">-44,4</td><td class="right perf-negative">-41,0</td></tr>
+        <tr><td class="bond-name">BOPREA27B</td><td class="right">97,1</td><td class="right">170,8</td><td class="right perf-negative">-1,2</td><td class="right perf-negative">-1,6</td><td class="right perf-negative">-0,2</td><td class="right perf-positive">+22,8</td></tr>
+        <tr><td class="bond-name">BOPREA27C</td><td class="right">99,0</td><td class="right">8,4</td><td class="right perf-positive">+0,2</td><td class="right perf-positive">+0,3</td><td class="right perf-positive">+3,0</td><td class="right perf-positive">+9,8</td></tr>
+        <tr><td class="bond-name">BOPREA27D</td><td class="right">98,9</td><td class="right">7,9</td><td class="right perf-positive">+0,3</td><td class="right perf-positive">+0,3</td><td class="right perf-positive">+2,9</td><td class="right perf-positive">+9,6</td></tr>
+        <tr><td class="bond-name">BOPREA28A</td><td class="right">88,4</td><td class="right">10,4</td><td class="right perf-positive">+0,6</td><td class="right perf-negative">-0,3</td><td class="right perf-positive">+4,0</td><td class="right perf-muted">—</td></tr>
+        <tr><td class="bond-name">BOPREA28B</td><td class="right">86,7</td><td class="right">9,8</td><td class="right perf-positive">+0,3</td><td class="right perf-negative">-0,2</td><td class="right perf-positive">+2,2</td><td class="right perf-muted">—</td></tr>
+      </tbody></table></div></div>
+    </div>
+
+    <!-- === Subsoberanos === -->
+    <div class="sub-content" id="sub-subsoberanos">
+      <div class="chart-container">
+        <div class="chart-title">Curva Provinciales</div>
+        <div class="chart-subtitle">TIR (%) vs Duration — 10 abril 2026</div>
+        <div class="chart-canvas-wrap" id="provChart"></div>
+      </div>
+      <div class="table-wrapper"><div class="table-header-bar"><div><div class="table-title">Rendimientos Provinciales</div><div class="table-subtitle">Precios al 10 de abril</div></div></div><div style="overflow-x:auto"><table><thead><tr><th>Bono</th><th class="right">TIR (%)</th><th class="right">Ret. Esperado</th><th>Provincia</th></tr></thead><tbody>
+        <tr><td class="bond-name">BUEAIR27</td><td class="right">5,2</td><td class="right">5,2%</td><td style="color:var(--text-muted);font-size:12px">CABA</td></tr>
+        <tr><td class="bond-name">BUEAIR33</td><td class="right">12,0</td><td class="right">12,0%</td><td style="color:var(--text-muted);font-size:12px">CABA</td></tr>
+        <tr><td class="bond-name">PROVSF27</td><td class="right">7,5</td><td class="right">7,5%</td><td style="color:var(--text-muted);font-size:12px">Santa Fe</td></tr>
+        <tr class="highlight-row"><td class="bond-name">PROVSF34 ★</td><td class="right">15,6</td><td class="right" style="color:var(--accent-emerald)">15,6%</td><td style="color:var(--accent-blue);font-size:12px;font-weight:600">Santa Fe — Recomendado</td></tr>
+        <tr><td class="bond-name">NEUQUE30G</td><td class="right">8,4</td><td class="right">8,4%</td><td style="color:var(--text-muted);font-size:12px">Neuquén (garant.)</td></tr>
+        <tr><td class="bond-name">NEUQUE30</td><td class="right">9,2</td><td class="right">9,2%</td><td style="color:var(--text-muted);font-size:12px">Neuquén</td></tr>
+        <tr><td class="bond-name">MENDOZ29</td><td class="right">9,5</td><td class="right">9,5%</td><td style="color:var(--text-muted);font-size:12px">Mendoza</td></tr>
+        <tr><td class="bond-name">PDCAR27</td><td class="right">6,8</td><td class="right">6,8%</td><td style="color:var(--text-muted);font-size:12px">Córdoba</td></tr>
+        <tr><td class="bond-name">PDCAR29</td><td class="right">10,9</td><td class="right">10,9%</td><td style="color:var(--text-muted);font-size:12px">Córdoba</td></tr>
+        <tr><td class="bond-name">PDCAR32</td><td class="right">14,2</td><td class="right">14,2%</td><td style="color:var(--text-muted);font-size:12px">Córdoba</td></tr>
+        <tr><td class="bond-name">PDCAR35</td><td class="right">16,7</td><td class="right">16,7%</td><td style="color:var(--text-muted);font-size:12px">Córdoba</td></tr>
+        <tr><td class="bond-name">BUENOS37A</td><td class="right">16,0</td><td class="right">16,0%</td><td style="color:var(--text-muted);font-size:12px">PBA</td></tr>
+        <tr><td class="bond-name">SALTA27</td><td class="right">9,3</td><td class="right">9,3%</td><td style="color:var(--text-muted);font-size:12px">Salta</td></tr>
+        <tr><td class="bond-name">JUJUY27</td><td class="right">8,1</td><td class="right">8,1%</td><td style="color:var(--text-muted);font-size:12px">Jujuy</td></tr>
+        <tr><td class="bond-name">CHUBUT30</td><td class="right">8,4</td><td class="right">8,4%</td><td style="color:var(--text-muted);font-size:12px">Chubut</td></tr>
+        <tr><td class="bond-name">FUEGO27</td><td class="right">10,4</td><td class="right">10,4%</td><td style="color:var(--text-muted);font-size:12px">T. del Fuego</td></tr>
+        <tr><td class="bond-name">ENTRIO28</td><td class="right">9,2</td><td class="right">9,2%</td><td style="color:var(--text-muted);font-size:12px">Entre Ríos</td></tr>
+        <tr><td class="bond-name">CHACO28</td><td class="right">10,6</td><td class="right">10,6%</td><td style="color:var(--text-muted);font-size:12px">Chaco</td></tr>
+        <tr><td class="bond-name">PRN28</td><td class="right">9,7</td><td class="right">9,7%</td><td style="color:var(--text-muted);font-size:12px">Río Negro</td></tr>
+      </tbody></table></div></div>
+    </div>
+
+    <!-- === Deuda Local === -->
+    <div class="sub-content" id="sub-deuda-local">
+      <div class="section-title">CER (Boncer)</div>
+      <div class="table-wrapper"><div class="table-header-bar"><div><div class="table-title">Bonos CER</div><div class="table-subtitle">Precios al 10 de abril</div></div></div><div style="overflow-x:auto"><table><thead><tr><th>Bono</th><th class="right">TEA</th><th class="right">Semanal</th><th class="right">Mensual</th><th class="right">3 Meses</th></tr></thead><tbody>
+        <tr><td class="bond-name">X15Y6</td><td class="right">-13,4</td><td class="right perf-positive">+0,8</td><td class="right perf-positive">+2,6</td><td class="right perf-muted">—</td></tr>
+        <tr><td class="bond-name">X29Y6</td><td class="right">-12,9</td><td class="right perf-positive">+0,7</td><td class="right perf-positive">+3,0</td><td class="right perf-positive">+12,3</td></tr>
+        <tr><td class="bond-name">TZX26</td><td class="right">-9,8</td><td class="right perf-positive">+1,0</td><td class="right perf-positive">+3,6</td><td class="right perf-positive">+14,2</td></tr>
+        <tr><td class="bond-name">X31L6</td><td class="right">-7,8</td><td class="right perf-positive">+0,9</td><td class="right perf-positive">+3,8</td><td class="right perf-muted">—</td></tr>
+        <tr><td class="bond-name">X30S6</td><td class="right">-5,0</td><td class="right perf-positive">+1,9</td><td class="right perf-positive">+5,6</td><td class="right perf-muted">—</td></tr>
+        <tr><td class="bond-name">TZXO6</td><td class="right">-2,5</td><td class="right perf-positive">+1,0</td><td class="right perf-positive">+5,0</td><td class="right perf-positive">+16,7</td></tr>
+        <tr><td class="bond-name">X30N6</td><td class="right">-1,3</td><td class="right perf-positive">+1,2</td><td class="right perf-positive">+4,9</td><td class="right perf-positive">+15,9</td></tr>
+        <tr><td class="bond-name">TX26</td><td class="right">-3,1</td><td class="right perf-positive">+0,4</td><td class="right perf-positive">+3,6</td><td class="right perf-positive">+13,7</td></tr>
+        <tr><td class="bond-name">TZXD6</td><td class="right">-1,0</td><td class="right perf-positive">+1,1</td><td class="right perf-positive">+5,1</td><td class="right perf-positive">+16,5</td></tr>
+        <tr><td class="bond-name">TZXM7</td><td class="right">0,0</td><td class="right perf-positive">+1,5</td><td class="right perf-positive">+6,8</td><td class="right perf-positive">+18,8</td></tr>
+        <tr><td class="bond-name">TZXA7</td><td class="right">-0,4</td><td class="right perf-positive">+2,7</td><td class="right perf-positive">+7,6</td><td class="right perf-positive">+18,1</td></tr>
+        <tr><td class="bond-name">TZXY7</td><td class="right">-4,9</td><td class="right perf-positive">+6,8</td><td class="right perf-positive">+12,1</td><td class="right perf-positive">+23,7</td></tr>
+        <tr><td class="bond-name">TZX27</td><td class="right">2,2</td><td class="right perf-negative">-0,3</td><td class="right perf-positive">+6,5</td><td class="right perf-positive">+17,7</td></tr>
+        <tr><td class="bond-name">TZXS7</td><td class="right">4,2</td><td class="right perf-positive">+0,7</td><td class="right perf-muted">—</td><td class="right perf-muted">—</td></tr>
+        <tr><td class="bond-name">TZXD7</td><td class="right">4,5</td><td class="right perf-positive">+0,7</td><td class="right perf-positive">+5,4</td><td class="right perf-positive">+16,6</td></tr>
+        <tr class="highlight-row"><td class="bond-name">TZX28 ★</td><td class="right">6,5</td><td class="right perf-positive">+1,4</td><td class="right perf-positive">+5,4</td><td class="right perf-positive">+15,1</td></tr>
+        <tr><td class="bond-name">TZXS8</td><td class="right">6,8</td><td class="right perf-positive">+1,5</td><td class="right perf-muted">—</td><td class="right perf-muted">—</td></tr>
+        <tr><td class="bond-name">TX28</td><td class="right">3,4</td><td class="right perf-negative">-0,1</td><td class="right perf-positive">+5,2</td><td class="right perf-positive">+15,8</td></tr>
+      </tbody></table></div></div>
+
+      <div class="section-title">Tasa Fija (Lecap / Boncap)</div>
+      <div class="table-wrapper"><div class="table-header-bar"><div><div class="table-title">Tasa Fija</div><div class="table-subtitle">Precios al 10 de abril</div></div></div><div style="overflow-x:auto"><table><thead><tr><th>Bono</th><th class="right">TEA</th><th class="right">TEM</th><th class="right">Semanal</th><th class="right">Mensual</th><th class="right">3 Meses</th></tr></thead><tbody>
+        <tr><td class="bond-name">S17A6</td><td class="right">23,1</td><td class="right">1,74</td><td class="right perf-positive">+0,5</td><td class="right perf-positive">+2,0</td><td class="right perf-positive">+8,8</td></tr>
+        <tr><td class="bond-name">S30A6</td><td class="right">23,5</td><td class="right">1,77</td><td class="right perf-positive">+0,7</td><td class="right perf-positive">+2,1</td><td class="right perf-positive">+9,2</td></tr>
+        <tr><td class="bond-name">S15Y6</td><td class="right">25,3</td><td class="right">1,9</td><td class="right perf-positive">+0,7</td><td class="right perf-positive">+2,5</td><td class="right perf-muted">—</td></tr>
+        <tr><td class="bond-name">S29Y6</td><td class="right">25,2</td><td class="right">1,9</td><td class="right perf-positive">+0,8</td><td class="right perf-positive">+2,4</td><td class="right perf-positive">+10,1</td></tr>
+        <tr><td class="bond-name">T30J6</td><td class="right">26,6</td><td class="right">2,0</td><td class="right perf-positive">+0,8</td><td class="right perf-positive">+2,8</td><td class="right perf-positive">+10,6</td></tr>
+        <tr><td class="bond-name">S17L6</td><td class="right">27,8</td><td class="right">2,1</td><td class="right perf-positive">+0,9</td><td class="right perf-muted">—</td><td class="right perf-muted">—</td></tr>
+        <tr><td class="bond-name">S31L6</td><td class="right">26,5</td><td class="right">2,0</td><td class="right perf-positive">+1,1</td><td class="right perf-positive">+3,1</td><td class="right perf-muted">—</td></tr>
+        <tr><td class="bond-name">S31G6</td><td class="right">29,1</td><td class="right">2,2</td><td class="right perf-positive">+0,5</td><td class="right perf-positive">+3,0</td><td class="right perf-positive">+10,6</td></tr>
+        <tr><td class="bond-name">S30S6</td><td class="right">28,4</td><td class="right">2,1</td><td class="right perf-positive">+1,0</td><td class="right perf-positive">+4,3</td><td class="right perf-muted">—</td></tr>
+        <tr><td class="bond-name">S30O6</td><td class="right">29,0</td><td class="right">2,1</td><td class="right perf-positive">+0,6</td><td class="right perf-positive">+4,0</td><td class="right perf-positive">+10,4</td></tr>
+        <tr><td class="bond-name">S30N6</td><td class="right">29,5</td><td class="right">2,2</td><td class="right perf-positive">+0,5</td><td class="right perf-positive">+3,9</td><td class="right perf-positive">+10,2</td></tr>
+        <tr><td class="bond-name">T15E7</td><td class="right">30,2</td><td class="right">2,2</td><td class="right perf-positive">+0,6</td><td class="right perf-positive">+3,7</td><td class="right perf-positive">+10,0</td></tr>
+        <tr><td class="bond-name">T30A7</td><td class="right">30,4</td><td class="right">2,2</td><td class="right perf-positive">+1,2</td><td class="right perf-positive">+4,4</td><td class="right perf-positive">+11,3</td></tr>
+        <tr><td class="bond-name">T31Y7</td><td class="right">30,4</td><td class="right">2,2</td><td class="right perf-positive">+1,3</td><td class="right perf-positive">+4,8</td><td class="right perf-positive">+10,8</td></tr>
+        <tr><td class="bond-name">T30J7</td><td class="right">29,7</td><td class="right">2,2</td><td class="right perf-positive">+0,8</td><td class="right perf-positive">+4,7</td><td class="right perf-positive">+12,8</td></tr>
+        <tr><td class="bond-name">TY30P</td><td class="right">27,5</td><td class="right">2,0</td><td class="right perf-positive">+1,7</td><td class="right perf-positive">+0,4</td><td class="right perf-positive">+4,9</td></tr>
+      </tbody></table></div></div>
+
+      <div class="section-title">TAMAR</div>
+      <div class="table-wrapper"><div class="table-header-bar"><div><div class="table-title">Bonos TAMAR</div><div class="table-subtitle">Precios al 10 de abril</div></div></div><div style="overflow-x:auto"><table><thead><tr><th>Bono</th><th class="right">TEA</th><th class="right">TEM</th><th class="right">Semanal</th><th class="right">Mensual</th><th class="right">3 Meses</th></tr></thead><tbody>
+        <tr><td class="bond-name">M30A6</td><td class="right">34,9</td><td class="right">2,5</td><td class="right perf-positive">+0,6</td><td class="right perf-positive">+1,9</td><td class="right perf-positive">+8,6</td></tr>
+        <tr><td class="bond-name">M31G6</td><td class="right">41,3</td><td class="right">2,9</td><td class="right perf-negative">-0,1</td><td class="right perf-positive">+1,6</td><td class="right perf-positive">+9,6</td></tr>
+        <tr><td class="bond-name">TMF27</td><td class="right">40,2</td><td class="right">2,9</td><td class="right perf-positive">+0,4</td><td class="right perf-positive">+1,6</td><td class="right perf-muted">—</td></tr>
+      </tbody></table></div></div>
+
+      <div class="section-title">Dollar-Linked (DL)</div>
+      <div class="table-wrapper"><div class="table-header-bar"><div><div class="table-title">Dollar-Linked</div><div class="table-subtitle">Precios al 10 de abril</div></div></div><div style="overflow-x:auto"><table><thead><tr><th>Bono</th><th class="right">TEA</th><th class="right">Semanal</th><th class="right">Mensual</th><th class="right">3 Meses</th></tr></thead><tbody>
+        <tr><td class="bond-name">D30A6</td><td class="right">23,1</td><td class="right perf-negative">-1,4</td><td class="right perf-negative">-1,3</td><td class="right perf-negative">-3,7</td></tr>
+        <tr><td class="bond-name">TZV26</td><td class="right">3,9</td><td class="right perf-negative">-1,9</td><td class="right perf-negative">-1,0</td><td class="right perf-negative">-3,7</td></tr>
+        <tr><td class="bond-name">D30S6</td><td class="right">2,9</td><td class="right perf-negative">-0,7</td><td class="right perf-muted">—</td><td class="right perf-muted">—</td></tr>
+        <tr><td class="bond-name">TZV27</td><td class="right">4,8</td><td class="right perf-negative">-0,3</td><td class="right perf-positive">+0,1</td><td class="right perf-muted">—</td></tr>
+        <tr><td class="bond-name">TZV28</td><td class="right">7,3</td><td class="right perf-negative">-1,4</td><td class="right perf-muted">—</td><td class="right perf-muted">—</td></tr>
+      </tbody></table></div></div>
+
+      <div class="section-title">Duales</div>
+      <div class="table-wrapper"><div class="table-header-bar"><div><div class="table-title">Bonos Duales</div><div class="table-subtitle">Precios al 10 de abril</div></div></div><div style="overflow-x:auto"><table><thead><tr><th>Bono</th><th class="right">TEA</th><th class="right">TEM</th><th class="right">Semanal</th><th class="right">Mensual</th><th class="right">3 Meses</th></tr></thead><tbody>
+        <tr><td class="bond-name">TTJ26</td><td class="right">46,4</td><td class="right">3,2</td><td class="right perf-positive">+0,4</td><td class="right perf-positive">+1,8</td><td class="right perf-positive">+9,4</td></tr>
+        <tr><td class="bond-name">TTS26</td><td class="right">48,2</td><td class="right">3,3</td><td class="right perf-positive">+0,2</td><td class="right perf-positive">+1,8</td><td class="right perf-positive">+9,8</td></tr>
+        <tr><td class="bond-name">TTD26</td><td class="right">48,8</td><td class="right">3,4</td><td class="right perf-negative">-0,3</td><td class="right perf-positive">+1,2</td><td class="right perf-positive">+10,8</td></tr>
+      </tbody></table></div></div>
+    </div>
+  </div>
+
+  <!-- ============ SEMANA ============ -->
+  <div class="tab-content" id="tab-weekly">
+    <div class="section-title">La semana que pasó</div>
+    <div class="news-grid">
+      <div class="news-card"><h3>Mercado & Reservas</h3><ul class="news-items">
+        <li class="news-item"><span class="news-tag tag-bcra">BCRA</span>Compras 5d: US$963M — YTD: US$5.420M. Ritmo diario US$72M→US$173M.</li>
+        <li class="news-item"><span class="news-tag tag-bcra">BCRA</span>Cambios regulación cambiaria: flexibilización ingreso/egreso USD. Restricción cruzada MEP/CCL endurecida. Canje a 4,6%.</li>
+        <li class="news-item"><span class="news-tag tag-reg">CNV</span>Money markets: plazo fijo máximo de 50%→60% (RG 1126). TAMAR cayó a 23,4% TNA.</li>
+        <li class="news-item"><span class="news-tag tag-bcra">BCRA</span>REM marzo: inflación 3,0% (+0,5pp), 2,6% abril, 2,3% mayo. Bajo 2% recién agosto.</li>
+      </ul></div>
+      <div class="news-card"><h3>Macro & Política</h3><ul class="news-items">
+        <li class="news-item"><span class="news-tag tag-fmi">FMI</span>Staff-level agreement posible post Spring Meetings. Caputo viaja a Washington con Daza y Bausili.</li>
+        <li class="news-item"><span class="news-tag tag-macro">MACRO</span>Construcción: ISAC -1,3% m/m, -0,7% a/a. Industria: IPI -8,7% a/a, -4,0% m/m.</li>
+        <li class="news-item"><span class="news-tag tag-macro">MACRO</span>Morosidad hogares: 11,2% feb, 16 meses de suba. Crédito no bancario ~30%.</li>
+        <li class="news-item"><span class="news-tag tag-pol">POL</span>Kicillof con Monzó y Massot — reconfiguración peronista 2027.</li>
+        <li class="news-item"><span class="news-tag tag-reg">LEG</span>Diputados aprobó reforma Ley de Glaciares (137 votos).</li>
+        <li class="news-item"><span class="news-tag tag-macro">FISCAL</span>Línea financiamiento 15% TNA para 12 provincias (adelantos coparticipación).</li>
+      </ul></div>
+    </div>
+  </div>
+
+  <!-- ============ AGENDA ============ -->
+  <div class="tab-content" id="tab-calendar">
+    <div class="section-title">A monitorear esta semana</div>
+    <div class="news-card" style="margin-bottom:24px"><ul class="news-items">
+      <li class="news-item">Novedades revisión acuerdo FMI (Spring Meetings).</li>
+      <li class="news-item">Contexto global: commodities relevantes para términos de intercambio.</li>
+      <li class="news-item">Licitación miércoles — más desafiante por compresión spread tasas 1d vs lecaps. Vence S17A6 ~ARS 8.000M el viernes.</li>
+    </ul></div>
+    <div class="section-title">Calendario de datos</div>
+    <div class="table-wrapper"><div style="overflow-x:auto"><table><thead><tr><th>Fecha</th><th>Dato</th><th class="right">Balanz</th><th class="right">REM</th></tr></thead><tbody>
+      <tr><td class="calendar-date">14/04</td><td>IPC de marzo</td><td class="right" style="font-weight:600">3,2% m/m</td><td class="right" style="color:var(--text-muted)">3,0% m/m</td></tr>
+      <tr><td class="calendar-date">16/04</td><td>Resultado fiscal de marzo</td><td class="right perf-muted">—</td><td class="right perf-muted">—</td></tr>
+      <tr><td class="calendar-date">20/04</td><td>ICA de marzo</td><td class="right perf-muted">—</td><td class="right perf-muted">—</td></tr>
+      <tr><td class="calendar-date">22/04</td><td>EMAE de febrero</td><td class="right perf-muted">—</td><td class="right perf-muted">—</td></tr>
+    </tbody></table></div></div>
+  </div>
+
+  <div class="footer"><p>Fuente: Balanz Research, BBG, BCRA, INDEC, MECON, UTDT. Precios al 10 de abril de 2026. Este dashboard es informativo y no constituye recomendación de inversión. Balanz Capital Valores S.A.U.</p></div>
+</div>
+
+<script>
+function showTab(id, btn) {
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  btn.classList.add('active');
+  if (id === 'rendimientos') setTimeout(() => { renderCurveChart(); renderProvChart(); }, 60);
+}
+function showSubTab(id, btn) {
+  const parent = btn.closest('.tab-content');
+  parent.querySelectorAll('.sub-content').forEach(el => el.classList.remove('active'));
+  parent.querySelectorAll('.sub-tab').forEach(el => el.classList.remove('active'));
+  document.getElementById('sub-' + id).classList.add('active');
+  btn.classList.add('active');
+  if (id === 'soberanos') setTimeout(renderCurveChart, 60);
+  if (id === 'subsoberanos') setTimeout(renderProvChart, 60);
+}
+
+function renderCurveChart() {
+  const c = document.getElementById('curveChart');
+  if (!c || c.offsetWidth === 0) return;
+  const w = c.offsetWidth, h = c.offsetHeight;
+  const p = { t: 35, r: 30, b: 50, l: 55 };
+  const pw = w - p.l - p.r, ph = h - p.t - p.b;
+  const data = [
+    ['GD29',1.8,7.7,'GD'],['GD30',2.2,8.6,'GD'],['GD35',5.2,9.7,'GD'],['GD38',4.5,9.8,'GD'],['GD41',6.2,9.8,'GD'],['GD46',7.0,9.6,'GD'],
+    ['AL29',1.5,9.8,'AL'],['AL30',2.3,9.8,'AL'],['AL35',5.4,10.2,'AL'],['AL38',4.3,10.6,'AL'],['AL41',6.3,10.3,'AL'],['AL29N',3.5,10.5,'AL'],['AL27',1.0,7.3,'AL'],['AL28',1.3,8.8,'AL'],
+    ['BPOC7',0.8,8.4,'BP'],['BPOD7',0.9,7.9,'BP'],['BPO28A',1.8,10.4,'BP'],['BPO28B',2.5,9.8,'BP'],
+  ];
+  const xMin=0,xMax=8,yMin=6,yMax=12;
+  const sx=d=>p.l+((d-xMin)/(xMax-xMin))*pw;
+  const sy=y=>p.t+(1-(y-yMin)/(yMax-yMin))*ph;
+  const col={GD:'#3b82f6',AL:'#06b6d4',BP:'#94a3b8'};
+  let s=`<svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg" style="font-family:'DM Sans',sans-serif">`;
+  for(let y=6;y<=12;y++){const yy=sy(y);s+=`<line x1="${p.l}" y1="${yy}" x2="${w-p.r}" y2="${yy}" stroke="#1e2a45"/><text x="${p.l-10}" y="${yy+4}" text-anchor="end" fill="#64748b" font-size="11" font-family="'Space Mono',monospace">${y}%</text>`;}
+  for(let x=0;x<=8;x+=2){const xx=sx(x);s+=`<line x1="${xx}" y1="${p.t}" x2="${xx}" y2="${h-p.b}" stroke="#1e2a45" stroke-dasharray="4,4"/><text x="${xx}" y="${h-p.b+20}" text-anchor="middle" fill="#64748b" font-size="11" font-family="'Space Mono',monospace">${x}</text>`;}
+  s+=`<text x="${w/2}" y="${h-5}" text-anchor="middle" fill="#64748b" font-size="11" font-family="'Space Mono',monospace">Duration</text>`;
+  s+=`<text x="14" y="${h/2}" text-anchor="middle" fill="#64748b" font-size="11" font-family="'Space Mono',monospace" transform="rotate(-90,14,${h/2})">TIR (%)</text>`;
+  ['GD','AL'].forEach(sr=>{const pts=data.filter(d=>d[3]===sr).sort((a,b)=>a[1]-b[1]);if(pts.length<2)return;const pd=pts.map((q,i)=>`${i===0?'M':'L'}${sx(q[1]).toFixed(1)},${sy(q[2]).toFixed(1)}`).join(' ');s+=`<path d="${pd}" fill="none" stroke="${col[sr]}" stroke-width="1.5" stroke-dasharray="6,4" opacity="0.35"/>`;});
+  data.forEach(([nm,dur,tir,sr])=>{const cx=sx(dur),cy=sy(tir),cl=col[sr];const rec=nm==='GD41'||nm==='AL30';const r=rec?7:5;s+=`<circle cx="${cx}" cy="${cy}" r="${r}" fill="${cl}" opacity="0.9" stroke="${rec?'#fff':'none'}" stroke-width="${rec?2:0}"/>`;const ly=cy-12;s+=`<text x="${cx}" y="${ly}" text-anchor="middle" fill="${cl}" font-size="10" font-weight="${rec?700:500}">${nm}</text>`;if(rec)s+=`<text x="${cx}" y="${ly-11}" text-anchor="middle" fill="${cl}" font-size="9" font-weight="700">★</text>`;});
+  s+=`</svg>`;c.innerHTML=s;
+}
+
+function renderProvChart() {
+  const c = document.getElementById('provChart');
+  if (!c || c.offsetWidth === 0) return;
+  const w=c.offsetWidth,h=c.offsetHeight;
+  const p={t:30,r:30,b:50,l:55};
+  const pw=w-p.l-p.r,ph=h-p.t-p.b;
+  const data=[['BUEAIR27',0.3,5.2],['BUEAIR33',4.5,12.0],['PROVSF27',0.7,7.5],['PROVSF34',3.5,15.6],['NEUQUE30G',1.8,8.4],['NEUQUE30',2.2,9.2],['MENDOZ29',1.2,9.5],['PDCAR27',0.6,6.8],['PDCAR29',1.6,10.9],['PDCAR32',4.2,14.2],['PDCAR35',3.0,16.7],['BUENOS37A',4.8,16.0],['SALTA27',0.9,9.3],['JUJUY27',0.7,8.1],['CHUBUT30',2.0,8.4],['FUEGO27',1.9,10.4],['ENTRIO28',1.5,9.2],['CHACO28',1.1,10.6],['PRN28',1.3,9.7]];
+  const xMin=0,xMax=6,yMin=4,yMax=18;
+  const sx=d=>p.l+((d-xMin)/(xMax-xMin))*pw;
+  const sy=y=>p.t+(1-(y-yMin)/(yMax-yMin))*ph;
+  let s=`<svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg" style="font-family:'DM Sans',sans-serif">`;
+  for(let y=4;y<=18;y+=2){const yy=sy(y);s+=`<line x1="${p.l}" y1="${yy}" x2="${w-p.r}" y2="${yy}" stroke="#1e2a45"/><text x="${p.l-10}" y="${yy+4}" text-anchor="end" fill="#64748b" font-size="11" font-family="'Space Mono',monospace">${y}%</text>`;}
+  for(let x=0;x<=6;x++){const xx=sx(x);s+=`<line x1="${xx}" y1="${p.t}" x2="${xx}" y2="${h-p.b}" stroke="#1e2a45" stroke-dasharray="4,4"/><text x="${xx}" y="${h-p.b+20}" text-anchor="middle" fill="#64748b" font-size="11" font-family="'Space Mono',monospace">${x}</text>`;}
+  s+=`<text x="${w/2}" y="${h-5}" text-anchor="middle" fill="#64748b" font-size="11" font-family="'Space Mono',monospace">Duration</text>`;
+  s+=`<text x="14" y="${h/2}" text-anchor="middle" fill="#64748b" font-size="11" font-family="'Space Mono',monospace" transform="rotate(-90,14,${h/2})">TIR (%)</text>`;
+  data.forEach(([nm,dur,tir])=>{const cx=sx(dur),cy=sy(tir);const rec=nm==='PROVSF34';const cl=rec?'#3b82f6':'#94a3b8';const r=rec?7:4;s+=`<circle cx="${cx}" cy="${cy}" r="${r}" fill="${cl}" opacity="0.85" stroke="${rec?'#fff':'none'}" stroke-width="${rec?2:0}"/>`;s+=`<text x="${cx+8}" y="${cy+3}" fill="${rec?'#3b82f6':'#64748b'}" font-size="${rec?11:9}" font-weight="${rec?700:400}">${nm}${rec?' ★':''}</text>`;});
+  s+=`</svg>`;c.innerHTML=s;
+}
+
+window.addEventListener('load',()=>{renderCurveChart();renderProvChart();});
+window.addEventListener('resize',()=>{renderCurveChart();renderProvChart();});
+</script>
+</body>
+</html>
